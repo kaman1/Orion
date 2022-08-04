@@ -1,0 +1,197 @@
+type Comments
+  @model
+  @auth(rules: [{ allow: private, operations: [read] }, { allow: owner }]) {
+  id: ID!
+  comments: String
+  userID: String
+  itemID: String
+  User: User @hasOne
+  feedID: ID! @index(name: "byFeed")
+}
+
+type Feed
+  @model
+  @auth(rules: [{ allow: private, operations: [read] }, { allow: owner }]) {
+  id: ID!
+  caption: String
+  upload: String
+  userID: String
+  rating: PostStatus
+  User: User @hasOne
+  Comments: [Comments] @hasMany(indexName: "byFeed", fields: ["id"])
+}
+
+type Following
+  @model
+  @auth(
+    rules: [{ allow: private, operations: [read, update] }, { allow: owner }]
+  ) {
+  id: ID!
+  userId: String
+  FollowingID: String
+  User: User @hasOne
+  Approved: ApprovalStatus
+}
+
+type Follower
+  @model
+  @auth(rules: [{ allow: private, operations: [read] }, { allow: owner }]) {
+  id: ID!
+  userID: String
+  User: User @hasOne
+  FolloweeID: String
+}
+
+type SuperAdmin @model @auth(rules: [{ allow: owner }]) {
+  id: ID!
+  userID: String
+  Organization: Organization @hasOne
+  User: User @hasOne
+  role: RolesAccess
+}
+
+type InviteUser @model @auth(rules: [{ allow: owner }]) {
+  id: ID!
+  userID: String
+  Organization: Organization @hasOne
+  User: User @hasOne
+  role: RolesAccess
+}
+
+type Organization
+  @model
+  @auth(rules: [{ allow: private, operations: [read] }, { allow: owner }]) {
+  id: ID!
+  name: String
+  description: String
+  logo: String
+  website: String
+  email: String
+  phone: String
+  address: String
+  city: String
+  state: String
+  zip: String
+  country: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  role: RolesAccess
+  Users: [User] @hasMany(indexName: "byOrganization", fields: ["id"])
+  SuperAdmins: [SuperAdmin]
+    @hasMany(indexName: "byOrganization", fields: ["id"])
+  Feeds: [Feed] @hasMany(indexName: "byOrganization", fields: ["id"])
+  Following: [Following] @hasMany(indexName: "byOrganization", fields: ["id"])
+  Follower: [Follower] @hasMany(indexName: "byOrganization", fields: ["id"])
+  Comments: [Comments] @hasMany(indexName: "byOrganization", fields: ["id"])
+  InviteUser: [InviteUser] @hasMany(indexName: "byOrganization", fields: ["id"])
+  TeamName: String @index(name: "byTeamName")
+}
+
+type TeamName @model @auth(rules: [{ allow: owner }]) {
+  id: ID!
+  teamID: String
+  playerID: String
+  User: User @hasOne
+}
+
+type User
+  @model
+  @auth(rules: [{ allow: private, operations: [read] }, { allow: owner }]) {
+  id: ID!
+  first_name: String
+  last_name: String
+  username: String
+  gender: String
+  bio: String
+  city_location: String
+  age: String
+  status: OnlineStatus
+  type: Type
+  role: RolesAccess
+  Following: Following @belongsTo
+  Follower: Follower @belongsTo
+}
+
+type Join
+  @model
+  @auth(
+    rules: [{ allow: private, operations: [update, read] }, { allow: owner }]
+  ) {
+  id: ID!
+  EventID: String
+  Approved: ApprovalStatus
+  UserID: String
+  Events: Events @hasOne
+}
+
+type Events
+  @model
+  @auth(rules: [{ allow: private, operations: [read] }, { allow: owner }]) {
+  id: ID!
+  Title: String
+  Description: String
+  Date: String
+  Time: String
+  Address: String
+  zip_code: String
+  city: String
+  access_type: Type
+  price: String
+  ticket_URL: String
+  fee: PriceType
+  tag: AWSJSON
+  Join: Join @belongsTo
+  User: User @hasOne
+}
+
+type UserRating
+  @model
+  @auth(rules: [{ allow: private, operations: [read] }, { allow: owner }]) {
+  id: ID!
+  UserID: String
+  User: User @hasOne
+  rookie: String
+  pro: String
+  elite: String
+  allstar: String
+  street_start: String
+}
+
+enum OnlineStatus {
+  ONLINE
+  OFFLINE
+}
+
+enum PostStatus {
+  LIKE
+  UNLIKE
+}
+
+enum PriceType {
+  PAID
+  FREE
+}
+
+enum FeedType {
+  TEXT
+  IMAGE
+  VIDEO
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum Type {
+  PUPLIC
+  PRIVATE
+}
+
+enum RolesAccess {
+  ADMIN
+  USER
+  ORG
+  PLAYER
+}
